@@ -92,10 +92,7 @@ launchctl unload ~/Library/LaunchAgents/com.deezer-overlay-watcher.plist
 - macOS 11.0 or later
 - Deezer Desktop app
 - Accessibility permission
-- `nowplaying-cli` (for playback controls):
-  ```bash
-  brew install nowplaying-cli
-  ```
+- [Homebrew](https://brew.sh) (the app will automatically install `nowplaying-cli` on first launch if needed)
 
 ## Limitations
 

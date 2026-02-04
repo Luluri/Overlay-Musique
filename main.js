@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, dialog } = require('electron');
 const { execSync, exec } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 // Suppress EPIPE errors
 process.stdout.on('error', () => {});
@@ -19,6 +20,125 @@ let lastTrackKey = '';
 let isCurrentlyPlaying = true;
 
 const artworkCache = new Map();
+
+// Check and install nowplaying-cli if needed
+async function ensureNowPlayingCli() {
+  const possiblePaths = [
+    '/opt/homebrew/bin/nowplaying-cli',
+    '/usr/local/bin/nowplaying-cli'
+  ];
+
+  // Check if nowplaying-cli already exists
+  for (const cliPath of possiblePaths) {
+    if (fs.existsSync(cliPath)) {
+      return cliPath;
+    }
+  }
+
+  // Check if Homebrew is installed
+  const homebrewPaths = ['/opt/homebrew/bin/brew', '/usr/local/bin/brew'];
+  let brewPath = null;
+  for (const bp of homebrewPaths) {
+    if (fs.existsSync(bp)) {
+      brewPath = bp;
+      break;
+    }
+  }
+
+  if (!brewPath) {
+    // Homebrew not installed - show error dialog
+    dialog.showErrorBox(
+      'Homebrew Required',
+      'This app requires Homebrew to install dependencies.\n\n' +
+      'Please install Homebrew first:\n' +
+      'Visit https://brew.sh and follow the instructions.\n\n' +
+      'Then restart the app.'
+    );
+    app.quit();
+    return null;
+  }
+
+  // Ask user permission to install
+  const result = await dialog.showMessageBox({
+    type: 'question',
+    buttons: ['Install', 'Cancel'],
+    defaultId: 0,
+    title: 'Install Required Dependency',
+    message: 'nowplaying-cli is required for playback controls.',
+    detail: 'Would you like to install it now via Homebrew?\n\nThis will run: brew install nowplaying-cli'
+  });
+
+  if (result.response === 1) {
+    // User cancelled
+    dialog.showErrorBox(
+      'Installation Cancelled',
+      'The app cannot function without nowplaying-cli.\n\n' +
+      'You can install it manually with:\nbrew install nowplaying-cli'
+    );
+    app.quit();
+    return null;
+  }
+
+  // Show installing dialog
+  const installWindow = new BrowserWindow({
+    width: 300,
+    height: 100,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    webPreferences: { nodeIntegration: false }
+  });
+
+  installWindow.loadURL(`data:text/html,
+    <html>
+      <body style="font-family: -apple-system, sans-serif; background: rgba(30,30,35,0.95);
+                   color: white; display: flex; align-items: center; justify-content: center;
+                   height: 100vh; margin: 0; border-radius: 12px;">
+        <div style="text-align: center;">
+          <p style="margin: 0;">Installing nowplaying-cli...</p>
+          <p style="margin: 8px 0 0 0; font-size: 12px; opacity: 0.6;">This may take a moment</p>
+        </div>
+      </body>
+    </html>
+  `);
+
+  try {
+    // Run brew install
+    execSync(`${brewPath} install nowplaying-cli`, {
+      encoding: 'utf8',
+      timeout: 120000, // 2 minute timeout
+      stdio: 'pipe'
+    });
+
+    installWindow.close();
+
+    // Check again for the installed path
+    for (const cliPath of possiblePaths) {
+      if (fs.existsSync(cliPath)) {
+        dialog.showMessageBox({
+          type: 'info',
+          title: 'Installation Complete',
+          message: 'nowplaying-cli has been installed successfully!',
+          buttons: ['OK']
+        });
+        return cliPath;
+      }
+    }
+
+    throw new Error('Installation completed but binary not found');
+  } catch (error) {
+    installWindow.close();
+    dialog.showErrorBox(
+      'Installation Failed',
+      `Failed to install nowplaying-cli:\n${error.message}\n\n` +
+      'Please try installing manually:\nbrew install nowplaying-cli'
+    );
+    app.quit();
+    return null;
+  }
+}
+
+let NOWPLAYING_CLI = '/opt/homebrew/bin/nowplaying-cli';
 
 function createWindow() {
   if (app.dock) {
@@ -169,8 +289,6 @@ function startPolling() {
   setTimeout(fetchAndSendInfo, 500);
 }
 
-const NOWPLAYING_CLI = '/opt/homebrew/bin/nowplaying-cli';
-
 function mediaControl(action) {
   return new Promise((resolve, reject) => {
     let command;
@@ -232,7 +350,12 @@ ipcMain.handle('set-ignore-mouse', (event, ignore) => {
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Check and install nowplaying-cli if needed
+  const cliPath = await ensureNowPlayingCli();
+  if (!cliPath) return; // App will quit if installation failed
+  NOWPLAYING_CLI = cliPath;
+
   createWindow();
 
   // Cmd+Q: Quit the app

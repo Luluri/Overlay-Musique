@@ -111,7 +111,3 @@ npm run pack     # Build the app
 ```
 
 The built app will be in `dist/mac-arm64/Deezer Overlay.app`
-
-## License
-
-MIT

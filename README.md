@@ -9,8 +9,8 @@ A lightweight, always-on-top overlay that displays the currently playing track f
 
 - **Always-on-top overlay** - Stays visible even during games (windowed/borderless mode)
 - **Track info display** - Shows song title, artist, and album artwork
-- **Playback controls** - Play/Pause, Next, Previous buttons
-- **Auto-launch** - Automatically starts when Deezer opens
+- **Playback controls** - Play/Pause, Next, Previous
+- **Auto-launch** - Automatically starts when Deezer opens (optional)
 - **Auto-close** - Automatically closes when Deezer quits
 - **Click-through mode** - Doesn't interfere with your game by default
 - **No external dependencies** - Works out of the box on any Mac
@@ -31,16 +31,15 @@ A lightweight, always-on-top overlay that displays the currently playing track f
 | Shortcut | Action |
 |----------|--------|
 | `Cmd + Shift + I` | Toggle interactive mode (enable clicking on buttons) |
-| `Cmd + Shift + M` | Show/hide the overlay |
 | `Cmd + Q` | Quit the overlay |
 
-### How to Use
+### How it Works
 
 1. Launch **Deezer Desktop** and play some music
-2. The overlay will appear in the top-left corner of your screen
+2. The overlay appears in the top-left corner of your screen
 3. By default, clicks pass through the overlay (won't interfere with your game)
 4. Press `Cmd + Shift + I` to enable interactive mode and click the controls
-5. Press `Cmd + Shift + I` again to disable interactive mode
+5. Press `Cmd + Shift + I` again to return to click-through mode
 
 ## Auto-Launch Setup (Optional)
 
@@ -78,16 +77,25 @@ To make the overlay automatically start when Deezer opens, create a Launch Agent
 </plist>
 ```
 
-2. Load it with:
+2. Load it:
 ```bash
 launchctl load ~/Library/LaunchAgents/com.deezer-overlay-watcher.plist
+```
+
+3. To disable:
+```bash
+launchctl unload ~/Library/LaunchAgents/com.deezer-overlay-watcher.plist
 ```
 
 ## Requirements
 
 - macOS 11.0 or later
 - Deezer Desktop app
-- Accessibility permission (for reading window titles and sending keyboard shortcuts)
+- Accessibility permission
+- `nowplaying-cli` (for playback controls):
+  ```bash
+  brew install nowplaying-cli
+  ```
 
 ## Limitations
 
@@ -98,18 +106,11 @@ launchctl load ~/Library/LaunchAgents/com.deezer-overlay-watcher.plist
 ## Building from Source
 
 ```bash
-# Clone the repository
 git clone https://github.com/Luluri/Overlay-Musique.git
 cd Overlay-Musique
-
-# Install dependencies
 npm install
-
-# Run in development mode
-npm start
-
-# Build the app
-npm run pack
+npm start        # Run in dev mode
+npm run pack     # Build the app
 ```
 
 The built app will be in `dist/mac-arm64/Deezer Overlay.app`

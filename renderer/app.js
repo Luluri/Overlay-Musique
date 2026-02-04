@@ -1,21 +1,12 @@
-// DOM Elements
 const overlay = document.getElementById('overlay');
 const artwork = document.getElementById('artwork');
 const artworkPlaceholder = document.getElementById('artwork-placeholder');
 const titleEl = document.getElementById('title');
 const artistEl = document.getElementById('artist');
-const progressFill = document.getElementById('progress-fill');
-const elapsedEl = document.getElementById('elapsed');
-const durationEl = document.getElementById('duration');
 const playPauseBtn = document.getElementById('play-pause-btn');
 const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 
-// State
-let currentInfo = null;
-let isInteractive = false;
-
-// Update the UI with now playing info
 function updateUI(info) {
   if (!info || !info.title) {
     overlay.classList.add('no-music');
@@ -23,22 +14,21 @@ function updateUI(info) {
 
     if (info && info.error) {
       if (info.error.includes('Deezer not found')) {
-        titleEl.textContent = 'Deezer non détecté';
-        artistEl.textContent = 'Lancez Deezer pour commencer';
+        titleEl.textContent = 'Deezer not detected';
+        artistEl.textContent = 'Launch Deezer to start';
       } else {
-        titleEl.textContent = 'Permission requise';
-        artistEl.textContent = 'Activez "Enregistrement d\'écran" dans Préférences Système';
+        titleEl.textContent = 'Permission required';
+        artistEl.textContent = 'Enable Accessibility in System Preferences';
       }
     } else if (info && info.window_title) {
-      titleEl.textContent = 'En attente...';
-      artistEl.textContent = 'Jouez une musique sur Deezer';
+      titleEl.textContent = 'Waiting...';
+      artistEl.textContent = 'Play a song on Deezer';
     } else {
-      titleEl.textContent = 'Aucune musique';
-      artistEl.textContent = 'Lancez Deezer';
+      titleEl.textContent = 'No music';
+      artistEl.textContent = 'Launch Deezer';
     }
 
     playPauseBtn.textContent = '▶';
-    progressFill.style.width = '0%';
     artwork.classList.remove('visible');
     artworkPlaceholder.classList.remove('hidden');
     return;
@@ -54,10 +44,9 @@ function updateUI(info) {
     playPauseBtn.textContent = '▶';
   }
 
-  titleEl.textContent = info.title || 'Unknown';
-  artistEl.textContent = info.artist || 'Unknown';
+  titleEl.textContent = info.title;
+  artistEl.textContent = info.artist;
 
-  // Update artwork from Deezer API URL
   if (info.artwork) {
     artwork.src = info.artwork;
     artwork.classList.add('visible');
@@ -66,16 +55,8 @@ function updateUI(info) {
     artwork.classList.remove('visible');
     artworkPlaceholder.classList.remove('hidden');
   }
-
-  // No progress available
-  progressFill.style.width = '0%';
-  elapsedEl.textContent = '';
-  durationEl.textContent = '';
-
-  currentInfo = info;
 }
 
-// Control handlers
 playPauseBtn.addEventListener('click', async (e) => {
   e.stopPropagation();
   await window.deezerOverlay.togglePlayPause();
@@ -91,20 +72,10 @@ nextBtn.addEventListener('click', async (e) => {
   await window.deezerOverlay.nextTrack();
 });
 
-// Listen for interactive mode changes
 window.deezerOverlay.onInteractiveModeChanged((interactive) => {
-  isInteractive = interactive;
-  if (interactive) {
-    overlay.classList.add('interactive');
-  } else {
-    overlay.classList.remove('interactive');
-  }
+  overlay.classList.toggle('interactive', interactive);
 });
 
-// Listen for updates from main process
-window.deezerOverlay.onNowPlayingUpdate((info) => {
-  updateUI(info);
-});
+window.deezerOverlay.onNowPlayingUpdate(updateUI);
 
-// Initial state
 updateUI(null);

@@ -209,28 +209,47 @@ function startPolling() {
   setTimeout(fetchAndSendInfo, 500);
 }
 
-// Media control using nowplaying-cli (full path for packaged app)
-const NOWPLAYING_CLI = '/opt/homebrew/bin/nowplaying-cli';
-
+// Media control using AppleScript (no external dependencies)
 function mediaControl(action) {
   return new Promise((resolve, reject) => {
-    let command;
+    let script;
     switch (action) {
       case 'playpause':
-        command = `${NOWPLAYING_CLI} togglePlayPause`;
+        // Space key to Deezer
+        script = `
+          tell application "System Events"
+            tell process "Deezer"
+              key code 49
+            end tell
+          end tell
+        `;
         break;
       case 'next':
-        command = `${NOWPLAYING_CLI} next`;
+        // Shift + Right Arrow to Deezer
+        script = `
+          tell application "System Events"
+            tell process "Deezer"
+              key code 124 using shift down
+            end tell
+          end tell
+        `;
         break;
       case 'previous':
-        command = `${NOWPLAYING_CLI} previous`;
+        // Shift + Left Arrow to Deezer
+        script = `
+          tell application "System Events"
+            tell process "Deezer"
+              key code 123 using shift down
+            end tell
+          end tell
+        `;
         break;
       default:
         reject(new Error('Unknown action'));
         return;
     }
 
-    exec(command, (error, stdout, stderr) => {
+    exec(`osascript -e '${script}'`, (error, stdout, stderr) => {
       if (error) {
         safeError('Media control error:', error.message);
         reject(error);
@@ -272,42 +291,6 @@ ipcMain.handle('previous-track', async () => {
     return true;
   } catch (error) {
     safeError('Error previous track:', error);
-    return false;
-  }
-});
-
-ipcMain.handle('toggle-repeat', async () => {
-  try {
-    // Send 'R' key to Deezer to toggle repeat (key code 15 = R)
-    const script = `
-      tell application "System Events"
-        tell process "Deezer"
-          key code 15
-        end tell
-      end tell
-    `;
-    execSync(`osascript -e '${script}'`, { timeout: 2000 });
-    return true;
-  } catch (error) {
-    safeError('Error toggle repeat:', error);
-    return false;
-  }
-});
-
-ipcMain.handle('toggle-shuffle', async () => {
-  try {
-    // Try Cmd+S for shuffle (common shortcut)
-    const script = `
-      tell application "System Events"
-        tell process "Deezer"
-          key code 1 using command down
-        end tell
-      end tell
-    `;
-    execSync(`osascript -e '${script}'`, { timeout: 2000 });
-    return true;
-  } catch (error) {
-    safeError('Error toggle shuffle:', error);
     return false;
   }
 });

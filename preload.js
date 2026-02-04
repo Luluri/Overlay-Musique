@@ -5,8 +5,6 @@ contextBridge.exposeInMainWorld('deezerOverlay', {
   togglePlayPause: () => ipcRenderer.invoke('toggle-play-pause'),
   nextTrack: () => ipcRenderer.invoke('next-track'),
   previousTrack: () => ipcRenderer.invoke('previous-track'),
-  toggleRepeat: () => ipcRenderer.invoke('toggle-repeat'),
-  toggleShuffle: () => ipcRenderer.invoke('toggle-shuffle'),
 
   // Mouse interaction control
   setIgnoreMouse: (ignore) => ipcRenderer.invoke('set-ignore-mouse', ignore),

@@ -1,0 +1,49 @@
+{
+  "name": "deezer-overlay",
+  "version": "1.0.0",
+  "description": "Gaming overlay for Deezer - displays currently playing music",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "deezer",
+    "overlay",
+    "gaming",
+    "music",
+    "electron"
+  ],
+  "author": "Lucas",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.lucas.deezer-overlay",
+    "productName": "Deezer Overlay",
+    "mac": {
+      "category": "public.app-category.music",
+      "target": "dir",
+      "icon": "assets/icon.icns",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "get-deezer-info.py",
+      "renderer/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "get-deezer-info.py",
+        "to": "get-deezer-info.py"
+      }
+    ]
+  }
+}

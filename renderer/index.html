@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.dzcdn.net https://e-cdns-images.dzcdn.net;">
+  <title>Deezer Overlay</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="overlay" class="overlay">
+    <div class="drag-handle"></div>
+
+    <div class="content">
+      <div class="artwork-container">
+        <img id="artwork" src="" alt="Album Art" class="artwork">
+        <div id="artwork-placeholder" class="artwork-placeholder">♪</div>
+      </div>
+
+      <div class="info">
+        <div id="title" class="title">No music playing</div>
+        <div id="artist" class="artist">-</div>
+
+        <div class="progress-container">
+          <div id="progress-bar" class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <div class="time-info">
+            <span id="elapsed">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="prev-btn" class="control-btn" title="Previous">⏮</button>
+        <button id="play-pause-btn" class="control-btn play-btn" title="Play/Pause">▶</button>
+        <button id="next-btn" class="control-btn" title="Next">⏭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
